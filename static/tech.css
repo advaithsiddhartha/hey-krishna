@@ -1,0 +1,43 @@
+@import url('navbar.css');
+
+/* Base */
+body {
+  background: linear-gradient(90deg, #000000, #011035);
+  color: rgb(255, 255, 255);
+            font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* Header */
+h1 {
+  margin-top: 30px;
+  font-size: clamp(2rem, 5vw, 3rem);
+  /* text-shadow: 0 0 12px orange, 0 0 25px gold; */
+}
+
+/* Content container */
+.tech-container {
+  max-width: 950px;
+  margin: 40px auto;
+  padding: 30px;
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 14px;
+  text-align: left;
+  line-height: 1.8;
+  font-size: clamp(16px, 2vw, 20px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.tech-container h2 {
+  font-size: 1.8rem;
+  margin: 20px 0 10px;
+  color: #ffe066;
+  /* text-shadow: 0 0 10px orange; */
+}
+
+.tech-container p {
+  margin-bottom: 20px;
+}

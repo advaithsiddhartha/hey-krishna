@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hey Krishna - Divine Guidance</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <style>
+        :root {
+            --primary-gold: #FFD700;
+            --secondary-gold: #D4AF37;
+            --dark-blue: #011035;
+            --darker-blue: #000813;
+            --light-gold: #FFF9C4;
+            --text-light: #F5F5F5;
+            --text-gray: #CCCCCC;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker-blue) 0%, var(--dark-blue) 50%, #000000 100%);
+            color: var(--text-light);
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1.7;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            text-align: center;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23FFD700" fill-opacity="0.03" d="M0,128L48,117.3C96,107,192,85,288,112C384,139,480,213,576,218.7C672,224,768,160,864,138.7C960,117,1056,139,1152,149.3C1248,160,1344,160,1392,160L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .main-header {
+            text-align: center;
+            margin: 40px 0 30px;
+            position: relative;
+        }
+        
+        .main-header h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #0062ff 0%, #09ff00 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .main-header h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--primary-gold), transparent);
+        }
+        
+        .main-header p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Krishna Image */
+        .krishna-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 20px;
+            margin: 30px auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: float 6s ease-in-out infinite;
+            border: 2px solid var(--primary-gold);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Intro Section */
+        .intro {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background: rgba(1, 16, 53, 0.7);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            line-height: 1.8;
+            font-size: clamp(16px, 2vw, 20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .intro::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, transparent, var(--primary-gold), transparent);
+        }
+        
+        /* Sloka */
+        .sloka {
+            font-family: "Noto Sans Devanagari", serif;
+            font-size: clamp(20px, 3vw, 26px);
+            margin: 30px 0 20px 0;
+            color: var(--light-gold);
+            line-height: 1.6;
+            text-align: center;
+        }
+        
+        .sloka-translation {
+            font-style: italic;
+            color: var(--text-gray);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        /* Life Changing Verse */
+        .life-verse {
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            border-left: 4px solid var(--primary-gold);
+        }
+        
+        .life-verse h3 {
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .life-verse .verse {
+            font-family: "Noto Sans Devanagari", serif;
+            font-size: clamp(22px, 4vw, 28px);
+            color: var(--light-gold);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .life-verse .translation {
+            font-style: italic;
+            color: var(--text-gray);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .life-verse .context {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        /* Button */
+        .ask-btn {
+            display: inline-block;
+            margin: 30px 0;
+            padding: 16px 40px;
+            background: linear-gradient(to right, var(--primary-gold), #ffbb00);
+            color: var(--darker-blue);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .ask-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #ffbb00, var(--primary-gold));
+        }
+        
+        .ask-btn i {
+            margin-left: 10px;
+        }
+        
+        /* Floating Elements */
+        .floating-icon {
+            position: absolute;
+            opacity: 0.1;
+            color: var(--primary-gold);
+            z-index: -1;
+        }
+        
+        .floating-icon:nth-child(1) {
+            top: 10%;
+            left: 5%;
+            font-size: 3rem;
+            animation: floatIcon 15s ease-in-out infinite;
+        }
+        
+        .floating-icon:nth-child(2) {
+            top: 30%;
+            right: 5%;
+            font-size: 4rem;
+            animation: floatIcon 18s ease-in-out infinite;
+        }
+        
+        .floating-icon:nth-child(3) {
+            bottom: 20%;
+            left: 8%;
+            font-size: 2.5rem;
+            animation: floatIcon 12s ease-in-out infinite;
+        }
+        
+        @keyframes floatIcon {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .intro {
+                padding: 25px;
+            }
+            
+            .life-verse {
+                padding: 20px;
+            }
+            
+            .ask-btn {
+                padding: 14px 30px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+          {% include 'navbar.html' %}
+
+    <div class="floating-icon">🕉️</div>
+    <div class="floating-icon">📖</div>
+    <div class="floating-icon">🧠</div>
+    
+    <div class="container">
+        <header class="main-header">
+            <h1>HeyKrishna</h1>
+            <p>Get Guidance from Krishna, Anytime.</p>
+        </header>
+        
+        <img src="{{ url_for('static', filename=image_file) }}" alt="Krishna Image" class="krishna-image">
+        
+        <a href="/ask-page" class="ask-btn">Ask Krishna Now <i class="fas fa-arrow-right"></i></a>
+        
+        <div class="intro">
+            <div class="sloka">
+                यो यो यां यां तनुं भक्तः श्रद्धयार्चितुमिच्छति।<br>
+                तस्य तस्याचलां श्रद्धां तामेव विदधाम्यहम्॥
+            </div>
+            <p class="sloka-translation">"God comes to those who seek Him with sincerity."</p>
+            
+            <p>
+                The Bhagavad Gita is loved by all, yet its essence often fades behind literal translations.  
+                For me, the Gita is a guide at every crossroad — simple, profound, and always relevant.
+            </p>
+            <p style="color: gold;">
+                From my time in Dwarka, while reading the Gita to overcome sorrow, I wished I could speak to Krishna directly.  
+                That wish gave birth to <b>Hey Krishna</b> — where anyone can ask, share, and receive divine guidance.
+            </p>
+             
+            <div class="life-verse">
+                <h3>The Verse That Changed My Life</h3>
+                <div class="verse">
+                    कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।<br>
+                    मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥
+                </div>
+                <p class="translation">
+                    "You have the right to work only, but never to its fruits.<br>
+                    Let not the fruits of action be your motive, nor let your attachment be to inaction."
+                </p>
+                <p class="context">
+                    This teaching from Chapter 2, Verse 47 transformed my perspective on life. 
+                    I learned to focus on my actions without attachment to results, finding peace in doing my duty 
+                    while leaving outcomes to the divine. It changed how I approach challenges and successes alike.
+                </p>
+            </div>
+            
+            <a href="/ask-page" class="ask-btn">Begin Your Conversation with Krishna</a>
+        </div>
+    </div>
+</body>
+</html>

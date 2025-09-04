@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hey Krishna - Divine Guidance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+</head>
+<body>
+      {% include 'navbar.html' %}
+
+  
+  <div class="container">
+    <header class="main-header">
+      <h1>Ask Krishna</h1>
+      <p>Receive divine guidance from the timeless wisdom of the Krishna</p>
+    </header>
+    
+    <div class="form-container">
+      <form id="ask-form">
+        <div class="form-group">
+          <label for="name"><i class="fas fa-user"></i> Your Name</label>
+          <input type="text" id="name" class="form-control" placeholder="Enter your name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="age"><i class="fas fa-birthday-cake"></i> Your Age</label>
+          <input type="number" id="age" class="form-control" placeholder="Enter your age" required min="1" max="120">
+        </div>
+        
+        <div class="form-group">
+          <label for="query"><i class="fas fa-question-circle"></i> Your Question</label>
+          <textarea id="query" class="form-control" rows="4" placeholder="Share your problem or question..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="language"><i class="fas fa-language"></i> Language Preference</label>
+          <select id="language" class="form-control">
+            <option value="English">English</option>
+            <option value="Telugu">Telugu</option>
+            <option value="Hindi">Hindi</option>
+          </select>
+        </div>
+        
+        <div class="mode-buttons">
+          <button type="button" class="mode-btn normal-btn" onclick="submitForm('normal')">
+            <i class="fas fa-comment"></i> Normal Guidance
+          </button>
+          <button type="button" class="mode-btn deep-btn" onclick="submitForm('deep')">
+            <i class="fas fa-star"></i> Deep Wisdom
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <div id="response"></div>
+    <div id="verses"></div>
+    
+
+  <div id="loading">
+    <div class="chakra-container">
+      <img src="../static/chakra.png" alt="Chakra" class="chakra">
+    </div>
+    <p class="loading-text">Loading divine guidance...</p>
+  </div>
+
+  <script>
+    const loadingScreen = document.getElementById("loading");
+    const responseDiv = document.getElementById("response");
+    const versesDiv = document.getElementById("verses");
+
+    responseDiv.style.display = "none";
+    versesDiv.style.display = "none";
+    async function submitForm(mode) {
+      loadingScreen.style.display = "flex";
+
+      const name = document.getElementById("name").value;
+      const age = document.getElementById("age").value;
+      const query = document.getElementById("query").value;
+      const language = document.getElementById("language").value;
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, age, query, language, mode })
+        });
+
+        const data = await res.json();
+        loadingScreen.style.display = "none";
+
+        if (data.response) {
+          responseDiv.style.display = "block";
+          responseDiv.innerHTML = `<div class="glow-text"><h2>📜 Krishna's Guidance</h2>${data.response}</div>`;
+        } else {
+          responseDiv.style.display = "none";
+        }
+
+        if (data.verses && data.verses.length > 0) {
+          versesDiv.style.display = "block";
+          let versesHTML = `<h2>🔎 Relevant Verses</h2>`;
+          data.verses.forEach(v => {
+            versesHTML += `
+              <div class="verse-block">
+                <p>🕉️ Chapter ${v.chapter}, Verse ${v.verse}</p>
+                <p>📜 Sanskrit: <b>${v.sanskrit}</b></p>
+                <p>🔹 ${language}: <b>${v.english}</b></p>
+              </div>
+            `;
+          });
+          versesDiv.innerHTML = versesHTML;
+        } else {
+          versesDiv.style.display = "none";
+        }
+        
+        // Scroll to response
+        responseDiv.scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error("Error:", error);
+        loadingScreen.style.display = "none";
+        alert("Something went wrong. Please try again.");
+      }
+    }
+
+    window.addEventListener("load", () => {
+      loadingScreen.style.display = "none";
+    });
+  </script>
+</body>
+</html>
