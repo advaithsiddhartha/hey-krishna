@@ -30,8 +30,10 @@ key_cycle = itertools.cycle(API_KEYS)
 
 def get_next_model(model_name: str):
     api_key = next(key_cycle)
+    print(f"[INFO] Using API key for LLM: {api_key[:5]}...")  # Print first few chars for identification
     genai.configure(api_key=api_key)
     return genai.GenerativeModel(model_name)
+
 
 with open("gita_verses.json", "r", encoding="utf-8") as f:
     data = json.load(f)
@@ -42,6 +44,9 @@ print("Loaded FAISS index ✅")
 log_memory("After loading FAISS index")
 
 def find_relevant_verses(query, k=3):
+    api_key = next(key_cycle)
+    print(f"[INFO] Using API key for Embedding: {api_key[:5]}...")  # Log the key in use
+    genai.configure(api_key=api_key)
     log_memory("Before embedding query")
     embedding = genai.embed_content(model="models/embedding-001", content=query)["embedding"]
     query_embedding = np.array([embedding], dtype="float32")
@@ -50,6 +55,7 @@ def find_relevant_verses(query, k=3):
     gc.collect()
     log_memory("After FAISS search")
     return [data[i] for i in indices[0]]
+
 
 @app.route("/")
 def home():
