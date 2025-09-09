@@ -30,7 +30,7 @@ key_cycle = itertools.cycle(API_KEYS)
 
 def get_next_model(model_name: str):
     api_key = next(key_cycle)
-    genai.configure(api_key="AIzaSyAZn9ojTP_qfDyXW6QqqR76uYef-lcM0I0")
+    genai.configure(api_key=api_key)
     return genai.GenerativeModel(model_name)
 
 with open("gita_verses.json", "r", encoding="utf-8") as f:
