@@ -38,7 +38,7 @@ key_cycle = itertools.cycle(API_KEYS)
 
 def get_next_model(model_name: str):
     api_key = next(key_cycle)
-    genai.configure(api_key=api_key)
+    genai.configure(api_key="AIzaSyDEEsQ2Mu0SnH9CQW6ZRlJggZ_jlASGas4")
     return genai.GenerativeModel(model_name)
 
 # -------------------
