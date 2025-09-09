@@ -101,27 +101,7 @@ def ask():
     
     Your task:
     1. Provide a compassionate, mentor-like answer appropriate for a {age}-year-old.
-    2. Use all the three verses given and Whenever quoting verses:
-    - Wrap the Sanskrit verse in <b> tags.
-    - Wrap the translation in <b> tags as well.
-    - Provide an explanation after each verse.
-    3. Format the answer in paragraphs with spacing.
-    4. Integrate verses contextually within the answer.
-    5. At the end, optionally summarize the key points.
 
-    Use a warm, divine, mentor tone.
-    Knowledge base to reference (relevant slokas from Bhagavad Gita):
-    {results}
-
-    IMPORTANT:
-    - KEEP THE LANGUAGE SIMPLE (English, Telugu, Hindi).
-    - Output the response in HTML format.
-    - Do NOT use Markdown-style asterisks.
-    - Include Sanskrit and translation for every verse.
-    - Maintain spacing between slokas.
-    - Answer fully in {language}, go detailed and nicely.
-    - End with a divine closing statement like:
-      "I, Krishna, am always with you. Be strong."
     """
 
     llm_model = "gemini-2.5-pro" if mode == "deep" else "gemini-2.5-flash"
