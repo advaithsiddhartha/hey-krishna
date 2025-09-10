@@ -4,7 +4,6 @@ import json
 import numpy as np
 import google.generativeai as genai
 import random
-import itertools
 import os
 from dotenv import load_dotenv
 import gc
@@ -28,18 +27,15 @@ def log_memory(stage=""):
 tracemalloc.start()
 
 # -------------------
-# Load API Keys
+# Load API Key (single key)
 # -------------------
-api_keys_str = os.getenv("API_KEYS", "")
-API_KEYS = [k.strip() for k in api_keys_str.split(",") if k.strip()]
-if not API_KEYS:
-    raise ValueError("No API keys found. Please set API_KEYS in your environment.")
+API_KEY = os.getenv("API_KEY")
+if not API_KEY:
+    raise ValueError("No API key found. Please set API_KEY in your .env file")
 
-key_cycle = itertools.cycle(API_KEYS)
+genai.configure(api_key=API_KEY)
 
-def get_next_model(model_name: str):
-    api_key = next(key_cycle)
-    genai.configure(api_key=api_key)
+def get_model(model_name: str):
     return genai.GenerativeModel(model_name)
 
 # -------------------
@@ -119,7 +115,7 @@ def ask():
     """
 
     llm_model = "gemini-2.5-pro" if mode == "deep" else "gemini-2.5-flash"
-    llm = get_next_model(llm_model)
+    llm = get_model(llm_model)
 
     log_memory("Before generating LLM content")
     response = llm.generate_content(prompt)
