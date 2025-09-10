@@ -5,16 +5,14 @@ import numpy as np
 import google.generativeai as genai
 import random
 import os
-from dotenv import load_dotenv
 import gc
 import tracemalloc
 import psutil
 
 # -------------------
-# Setup Flask + dotenv
+# Setup Flask
 # -------------------
 app = Flask(__name__)
-load_dotenv()
 
 # -------------------
 # Memory logging functions
@@ -31,7 +29,7 @@ tracemalloc.start()
 # -------------------
 API_KEY = os.getenv("API_KEY")
 if not API_KEY:
-    raise ValueError("No API key found. Please set API_KEY in your .env file")
+    raise ValueError("No API key found. Please set API_KEY in your environment variables")
 
 genai.configure(api_key=API_KEY)
 
@@ -139,3 +137,4 @@ def ask():
 # -------------------
 if __name__ == "__main__":
     app.run(debug=True, port=7970)
+
