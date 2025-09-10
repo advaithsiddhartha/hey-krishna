@@ -44,9 +44,9 @@ print("Loaded FAISS index ✅")
 log_memory("After loading FAISS index")
 
 def find_relevant_verses(query, k=3):
-    api_key = next(key_cycle)
+    api_key = "AIzaSyDp-FxKDOyQVGk1AiKNqMdwCP60xldYT7Q"
     print(f"[INFO] Using API key for Embedding: {api_key}...")  # Log the key in use
-    genai.configure(api_key="AIzaSyDVMmcC_pFqYzXo6fDaDXoQ2EuLan_c1rc")
+    genai.configure(api_key=api_key)
     log_memory("Before embedding query")
     embedding = genai.embed_content(model="models/embedding-001", content=query)["embedding"]
     query_embedding = np.array([embedding], dtype="float32")
