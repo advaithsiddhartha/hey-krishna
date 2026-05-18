@@ -1,101 +1,87 @@
-import os
-import gc
-import json
-import uuid
-import time
+from flask import Flask, render_template, request, jsonify
 import faiss
-import random
-import psutil
-import traceback
-import tracemalloc
+import json
 import numpy as np
 import google.generativeai as genai
-
+import random
+import os
+import gc
+import tracemalloc
+import psutil
+import traceback
+import time
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify
 
 # =========================================================
-# LOAD ENV
+# LOAD ENV VARIABLES
 # =========================================================
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY")
-
-if not API_KEY:
-    raise ValueError("❌ GEMINI_API_KEY not found in .env")
-
-genai.configure(api_key=API_KEY)
-
 # =========================================================
-# FLASK SETUP
+# SETUP FLASK
 # =========================================================
 app = Flask(__name__)
 
 # =========================================================
-# START MEMORY TRACKING
+# MEMORY TRACKING
 # =========================================================
 tracemalloc.start()
-
-# =========================================================
-# DEBUG HELPERS
-# =========================================================
-
-def print_divider():
-    print("\n" + "=" * 80 + "\n")
 
 def log_memory(stage=""):
     process = psutil.Process(os.getpid())
     mem_info = process.memory_info()
 
-    rss = mem_info.rss / (1024 * 1024)
-    vms = mem_info.vms / (1024 * 1024)
-
-    current, peak = tracemalloc.get_traced_memory()
-
     print(f"""
-[MEMORY] {stage}
+================ MEMORY LOG ================
 
-RSS Memory : {rss:.2f} MB
-VMS Memory : {vms:.2f} MB
+STAGE : {stage}
 
-Python Current Allocated : {current / 1024 / 1024:.2f} MB
-Python Peak Allocated    : {peak / 1024 / 1024:.2f} MB
+RSS MEMORY : {mem_info.rss / (1024*1024):.2f} MB
+VMS MEMORY : {mem_info.vms / (1024*1024):.2f} MB
+
+============================================
 """)
 
-def log_time(stage, start_time):
-    elapsed = time.time() - start_time
-    print(f"[TIME] {stage}: {elapsed:.2f} sec")
+# =========================================================
+# LOAD GEMINI API KEY
+# =========================================================
+API_KEY = os.getenv("GEMINI_API_KEY")
 
-def log_exception(e):
-    print_divider()
-    print("❌ EXCEPTION OCCURRED")
-    print(type(e).__name__)
-    print(str(e))
-    print("\nFULL TRACEBACK:\n")
-    traceback.print_exc()
-    print_divider()
+if not API_KEY:
+    raise ValueError("""
+❌ GEMINI_API_KEY NOT FOUND
+
+Create a .env file and add:
+
+GEMINI_API_KEY=your_api_key_here
+""")
+
+print("✅ Gemini API Key Loaded")
+
+# Configure Gemini
+genai.configure(api_key=API_KEY)
 
 # =========================================================
-# MODEL HELPER
+# GEMINI MODEL HELPER
 # =========================================================
-
 def get_model(model_name: str):
-    print(f"📦 Loading Gemini Model: {model_name}")
+    print(f"\n📦 Loading Gemini Model: {model_name}")
     return genai.GenerativeModel(model_name)
 
 # =========================================================
-# LOAD DATA + FAISS
+# LOAD GITA DATA
 # =========================================================
-
-print_divider()
-print("📖 Loading Bhagavad Gita JSON...")
+print("\n📖 Loading Gita JSON...")
 
 with open("gita_verses.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 print(f"✅ Loaded {len(data)} verses")
 
-print("\n📦 Loading FAISS index...")
+# =========================================================
+# LOAD FAISS INDEX
+# =========================================================
+print("\n📦 Loading FAISS Index...")
 
 faiss_path = os.path.join(os.path.dirname(__file__), "gita_indexes.faiss")
 
@@ -107,73 +93,80 @@ print(f"📚 Total Indexed Vectors: {index.ntotal}")
 
 log_memory("After FAISS Load")
 
-print_divider()
-
 # =========================================================
 # VECTOR SEARCH
 # =========================================================
-
 def find_relevant_verses(query, k=3):
 
     try:
-        print_divider()
-        print("🔍 STARTING VECTOR SEARCH")
-        print(f"📝 Query: {query}")
 
-        embedding_start = time.time()
+        print("\n" + "="*80)
+        print("🔍 VECTOR SEARCH START")
+        print("="*80)
+
+        print(f"\n📝 USER QUERY:\n{query}")
 
         log_memory("Before Embedding")
 
-        response = genai.embed_content(
+        embed_start = time.time()
+
+        embedding_response = genai.embed_content(
             model="models/embedding-001",
             content=query
         )
 
-        embedding = response["embedding"]
+        embedding = embedding_response["embedding"]
 
-        log_time("Embedding Generation", embedding_start)
+        embed_time = time.time() - embed_start
+
+        print(f"\n⏱ Embedding Time: {embed_time:.2f} sec")
 
         query_embedding = np.array([embedding], dtype="float32")
 
         print(f"✅ Embedding Shape: {query_embedding.shape}")
 
-        search_start = time.time()
-
         log_memory("Before FAISS Search")
+
+        faiss_start = time.time()
 
         distances, indices = index.search(query_embedding, k)
 
-        log_time("FAISS Search", search_start)
+        faiss_time = time.time() - faiss_start
+
+        print(f"\n⏱ FAISS Search Time: {faiss_time:.4f} sec")
 
         print("\n📊 SEARCH RESULTS")
 
-        for rank, idx in enumerate(indices[0]):
+        for i, idx in enumerate(indices[0]):
+
             print(f"""
-Result #{rank + 1}
+---------------- RESULT {i+1} ----------------
 
-Index: {idx}
-Distance: {distances[0][rank]}
+Index      : {idx}
+Distance   : {distances[0][i]}
 
-Verse:
-{data[idx]["english"][:200]}
+Verse Preview:
+{data[idx]["english"][:250]}
+
+----------------------------------------------
 """)
 
         gc.collect()
 
         log_memory("After FAISS Search")
 
-        print_divider()
-
         return [data[i] for i in indices[0]]
 
     except Exception as e:
-        log_exception(e)
-        raise
+
+        print("\n❌ VECTOR SEARCH ERROR")
+        traceback.print_exc()
+
+        raise e
 
 # =========================================================
 # ROUTES
 # =========================================================
-
 @app.route("/")
 def home():
     random_num = random.randint(1, 15)
@@ -193,23 +186,25 @@ def tech():
 # =========================================================
 # MAIN ASK ROUTE
 # =========================================================
-
 @app.route("/ask", methods=["POST"])
 def ask():
 
-    request_id = str(uuid.uuid4())[:8]
-
     try:
 
-        print_divider()
-        print(f"🚀 NEW REQUEST [{request_id}]")
+        print("\n" + "="*100)
+        print("🚀 NEW REQUEST RECEIVED")
+        print("="*100)
 
         total_start = time.time()
 
         req = request.json
 
-        print("\n📨 RAW REQUEST JSON:")
+        print("\n📨 RAW REQUEST JSON")
         print(json.dumps(req, indent=2))
+
+        # -------------------------------------------------
+        # INPUTS
+        # -------------------------------------------------
 
         name = req.get("name", "Friend")
         age = req.get("age", "unknown")
@@ -218,30 +213,38 @@ def ask():
         mode = req.get("mode", "normal")
 
         print(f"""
-👤 User Details
+================ USER DETAILS ================
 
-Name     : {name}
-Age      : {age}
-Language : {language}
-Mode     : {mode}
+NAME      : {name}
+AGE       : {age}
+LANGUAGE  : {language}
+MODE      : {mode}
 
-Question:
+QUESTION:
 {query}
+
+==============================================
 """)
 
-        # =====================================================
-        # FIND VERSES
-        # =====================================================
+        # -------------------------------------------------
+        # RETRIEVE VERSES
+        # -------------------------------------------------
+
+        print("\n🔍 Finding Relevant Verses...")
 
         retrieval_start = time.time()
 
         results = find_relevant_verses(query)
 
-        log_time("Total Retrieval Pipeline", retrieval_start)
+        retrieval_time = time.time() - retrieval_start
 
-        # =====================================================
+        print(f"\n✅ Retrieval Completed in {retrieval_time:.2f} sec")
+
+        print(f"\n📚 Total Retrieved Verses: {len(results)}")
+
+        # -------------------------------------------------
         # BUILD PROMPT
-        # =====================================================
+        # -------------------------------------------------
 
         prompt = f"""
 You are Lord Krishna, giving guidance to {name}, who is {age} years old.
@@ -251,40 +254,37 @@ You are Lord Krishna, giving guidance to {name}, who is {age} years old.
 
 Your task:
 1. Provide a compassionate, mentor-like answer appropriate for a {age}-year-old.
-2. Use all the three verses given.
-3. Whenever quoting verses:
-   - Wrap Sanskrit verse in <b> tags
-   - Wrap translation in <b> tags
-   - Explain each verse
-4. Format properly in HTML
-5. Maintain spacing
-6. Keep language simple
-7. No markdown asterisks
+2. Use all the three verses given and whenever quoting verses:
+   - Wrap Sanskrit verse in <b> tags.
+   - Wrap translation in <b> tags.
+   - Provide explanation after each verse.
+3. Format answer in HTML.
+4. Maintain spacing between slokas.
+5. Use simple language.
 
-Knowledge Base:
+Knowledge base:
 {results}
 
 IMPORTANT:
 - Respond fully in {language}
+- Output HTML only
 - Include Sanskrit + translation
-- Detailed but meaningful
+- No markdown asterisks
 - End with divine Krishna closing statement
 """
 
-        print_divider()
+        print("\n" + "="*80)
         print("🧠 PROMPT GENERATED")
+        print("="*80)
 
-        print(f"\n📏 Prompt Length: {len(prompt)} characters")
+        print(f"\n📏 PROMPT LENGTH: {len(prompt)} characters")
 
-        preview = prompt[:1500]
+        print("\n📄 PROMPT PREVIEW:\n")
+        print(prompt[:3000])
 
-        print(f"\n📄 PROMPT PREVIEW:\n\n{preview}")
-
-        print_divider()
-
-        # =====================================================
+        # -------------------------------------------------
         # MODEL SELECTION
-        # =====================================================
+        # -------------------------------------------------
 
         llm_model = (
             "gemini-2.5-pro"
@@ -292,46 +292,124 @@ IMPORTANT:
             else "gemini-2.5-flash"
         )
 
+        print(f"\n⚡ USING MODEL: {llm_model}")
+
         llm = get_model(llm_model)
 
-        # =====================================================
-        # GENERATE RESPONSE
-        # =====================================================
+        # -------------------------------------------------
+        # GEMINI API CALL
+        # -------------------------------------------------
+
+        print("\n📡 SENDING REQUEST TO GEMINI...")
 
         generation_start = time.time()
-
-        print(f"⚡ Sending request to Gemini: {llm_model}")
 
         response = llm.generate_content(
             prompt,
             generation_config={
-                "max_output_tokens": 1200,
-                "temperature": 0.8
+                "temperature": 0.8,
+                "max_output_tokens": 1200
             }
         )
 
-        log_time("LLM Generation", generation_start)
+        generation_time = time.time() - generation_start
 
-        print("✅ Gemini Response Received")
+        print(f"\n⏱ Gemini Generation Time: {generation_time:.2f} sec")
 
-        # =====================================================
-        # RAW RESPONSE DEBUG
-        # =====================================================
+        print("\n✅ Gemini Response Received")
 
-        print_divider()
+        # -------------------------------------------------
+        # RAW GEMINI RESPONSE
+        # -------------------------------------------------
+
+        print("\n" + "="*100)
         print("📦 RAW GEMINI RESPONSE OBJECT")
+        print("="*100)
+
         print(response)
+
+        # -------------------------------------------------
+        # TOKEN USAGE
+        # -------------------------------------------------
+
+        try:
+
+            print("\n📊 TOKEN USAGE")
+
+            print(response.usage_metadata)
+
+        except Exception as token_error:
+
+            print("\n⚠️ Could not fetch token usage")
+            print(token_error)
+
+        # -------------------------------------------------
+        # CANDIDATES
+        # -------------------------------------------------
+
+        try:
+
+            print("\n🧠 RESPONSE CANDIDATES")
+
+            for i, candidate in enumerate(response.candidates):
+
+                print(f"\n----------- Candidate {i+1} -----------")
+                print(candidate)
+
+        except Exception as candidate_error:
+
+            print("\n⚠️ Could not fetch candidates")
+            print(candidate_error)
+
+        # -------------------------------------------------
+        # SAFETY RATINGS
+        # -------------------------------------------------
+
+        try:
+
+            print("\n🛡 SAFETY RATINGS")
+
+            for candidate in response.candidates:
+
+                print(candidate.safety_ratings)
+
+        except Exception as safety_error:
+
+            print("\n⚠️ Could not fetch safety ratings")
+            print(safety_error)
+
+        # -------------------------------------------------
+        # FINISH REASON
+        # -------------------------------------------------
+
+        try:
+
+            print("\n🏁 FINISH REASON")
+
+            for candidate in response.candidates:
+
+                print(candidate.finish_reason)
+
+        except Exception as finish_error:
+
+            print("\n⚠️ Could not fetch finish reason")
+            print(finish_error)
+
+        # -------------------------------------------------
+        # RESPONSE TEXT
+        # -------------------------------------------------
 
         krishna_response = response.text
 
-        print(f"\n📏 Response Length: {len(krishna_response)} chars")
+        print("\n" + "="*80)
+        print("📄 RESPONSE PREVIEW")
+        print("="*80)
 
-        print("\n📄 RESPONSE PREVIEW:\n")
-        print(krishna_response[:2000])
+        print(krishna_response[:4000])
 
-        # =====================================================
-        # CLEAN RESPONSE
-        # =====================================================
+        # -------------------------------------------------
+        # CLEAN HTML TAGS
+        # -------------------------------------------------
 
         if krishna_response.startswith("<html>"):
             krishna_response = krishna_response[6:]
@@ -341,53 +419,60 @@ IMPORTANT:
 
         gc.collect()
 
-        log_memory("After Response Generation")
+        log_memory("After Gemini Generation")
 
-        total_elapsed = time.time() - total_start
-
-        print_divider()
+        total_time = time.time() - total_start
 
         print(f"""
-✅ REQUEST COMPLETE [{request_id}]
 
-⏱ Total Time: {total_elapsed:.2f} sec
-📦 Model Used: {llm_model}
-📚 Retrieved Verses: {len(results)}
+✅ REQUEST SUCCESSFUL
+
+⏱ TOTAL REQUEST TIME : {total_time:.2f} sec
+📦 MODEL USED         : {llm_model}
+📚 VERSES USED        : {len(results)}
+
 """)
-
-        print_divider()
 
         return jsonify({
             "success": True,
             "response": krishna_response,
             "verses": results,
-            "request_id": request_id,
             "model_used": llm_model
         })
 
+    # =====================================================
+    # FULL GEMINI ERROR DEBUGGING
+    # =====================================================
+
     except Exception as e:
 
-        log_exception(e)
+        print("\n" + "="*100)
+        print("❌ GEMINI ERROR DETECTED")
+        print("="*100)
+
+        print(f"\n❌ ERROR TYPE:\n{type(e).__name__}")
+
+        print(f"\n❌ ERROR MESSAGE:\n{str(e)}")
+
+        print("\n❌ FULL TRACEBACK:\n")
+
+        traceback.print_exc()
+
+        print("\n" + "="*100)
 
         return jsonify({
             "success": False,
+            "error_type": type(e).__name__,
             "error": str(e),
             "traceback": traceback.format_exc()
         }), 500
 
 # =========================================================
-# RUN SERVER
+# RUN APP
 # =========================================================
-
 if __name__ == "__main__":
 
-    print_divider()
-
-    print("""
-🌸 KRISHNA AI SERVER STARTING
-""")
-
-    log_memory("Initial Startup")
+    print("\n🌸 Krishna AI Server Starting...\n")
 
     app.run(
         debug=True,
