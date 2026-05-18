@@ -111,7 +111,7 @@ def find_relevant_verses(query, k=3):
         embed_start = time.time()
 
         embedding_response = genai.embed_content(
-            model="models/embedding-001",
+            model="models/gemini-embedding-001",
             content=query
         )
 
