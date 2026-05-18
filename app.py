@@ -83,7 +83,7 @@ print(f"✅ Loaded {len(data)} verses")
 # =========================================================
 print("\n📦 Loading FAISS Index...")
 
-faiss_path = os.path.join(os.path.dirname(__file__), "gita_indexes.faiss")
+faiss_path = os.path.join(os.path.dirname(__file__), "gita_indexes-new.faiss")
 
 index = faiss.read_index(faiss_path)
 
