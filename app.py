@@ -45,7 +45,7 @@ VMS MEMORY : {mem_info.vms / (1024*1024):.2f} MB
 # =========================================================
 # LOAD GEMINI API KEY
 # =========================================================
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
 if not API_KEY:
     raise ValueError("""
