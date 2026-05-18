@@ -16,7 +16,7 @@ with open("gita_verses.json", "r", encoding="utf-8") as f:
 texts = [d["english"] for d in data]
 embeddings = []
 for text in texts:
-    emb = genai.embed_content(model="models/embedding-001", content=text)["embedding"]
+    emb = genai.embed_content(model="models/gemini-embedding-001", content=text)["embedding"]
     embeddings.append(emb)
 
 embeddings = np.array(embeddings).astype("float32")
